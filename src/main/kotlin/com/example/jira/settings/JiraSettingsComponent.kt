@@ -1,70 +1,68 @@
 package com.example.jira.settings
 
-import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPasswordField
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
-import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.Insets
-import javax.swing.JLabel
+import com.intellij.util.ui.FormBuilder
+import java.awt.Dimension
+import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JScrollPane
+import javax.swing.JSpinner
+import javax.swing.SpinnerNumberModel
 
 class JiraSettingsComponent {
-    val panel: JPanel = JPanel(BorderLayout(0, JBUI.scale(12))).apply {
-        val form = JPanel(GridBagLayout())
-        val constraints = GridBagConstraints().apply {
-            anchor = GridBagConstraints.WEST
-            insets = Insets(JBUI.scale(4), JBUI.scale(4), JBUI.scale(4), JBUI.scale(4))
-        }
 
-        fun addRow(row: Int, label: String, component: java.awt.Component) {
-            constraints.gridx = 0
-            constraints.gridy = row
-            constraints.weightx = 0.0
-            constraints.fill = GridBagConstraints.NONE
-            form.add(JLabel(label), constraints)
+    private val baseUrlField = JBTextField()
+    private val usernameField = JBTextField()
+    private val apiTokenField = JBPasswordField()
+    private val jqlField = JBTextArea(5, 0)
+    private val maxResultsSpinner = JSpinner(SpinnerNumberModel(10, 1, 50, 1))
 
-            constraints.gridx = 1
-            constraints.weightx = 1.0
-            constraints.fill = GridBagConstraints.HORIZONTAL
-            form.add(component, constraints)
-        }
+    val panel: JPanel = FormBuilder.createFormBuilder()
+        .addLabeledComponent(JBLabel("Jira Base URL"), baseUrlField, 1, false)
+        .addLabeledComponent(JBLabel("Username / Email"), usernameField, 1, false)
+        .addLabeledComponent(JBLabel("API Token"), apiTokenField, 1, false)
+        .addLabeledComponent(JBLabel("JQL"), jqlField, 1, false)
+        .addLabeledComponent(JBLabel("Max Results"), maxResultsSpinner, 1, false)
+        .addComponentFillVertically(JPanel(), 0)
+        .panel
 
-        addRow(0, "Jira Base URL", baseUrlField)
-        addRow(1, "User Email (for API token)", emailField)
-        addRow(2, "API Token", apiTokenField)
-
-        constraints.gridx = 0
-        constraints.gridy = 3
-        constraints.weightx = 0.0
-        constraints.weighty = 0.0
-        constraints.fill = GridBagConstraints.NONE
-        form.add(JLabel("Default JQL"), constraints)
-
-        constraints.gridx = 1
-        constraints.weightx = 1.0
-        constraints.weighty = 1.0
-        constraints.fill = GridBagConstraints.BOTH
-        defaultJqlArea.lineWrap = true
-        defaultJqlArea.wrapStyleWord = true
-        defaultJqlArea.border = JBUI.Borders.empty(4)
-        form.add(JScrollPane(defaultJqlArea), constraints)
-
-        add(form, BorderLayout.NORTH)
-        add(JLabel("Credentials are stored securely in IntelliJ's settings."), BorderLayout.SOUTH)
+    init {
+        jqlField.lineWrap = true
+        jqlField.wrapStyleWord = true
+        jqlField.minimumSize = Dimension(200, 80)
     }
 
-    val baseUrlField = JBTextField()
-    val emailField = JBTextField()
-    val apiTokenField = JBPasswordField()
-    val defaultJqlArea = JBTextArea(3, 20).apply {
-        emptyText.text = "project = KEY ORDER BY updated DESC"
-        background = JBColor.PanelBackground
-    }
+    fun getPreferredFocusedComponent(): JComponent = baseUrlField
 
-    fun getPreferredFocusedComponent() = baseUrlField
+    var baseUrl: String
+        get() = baseUrlField.text.trim()
+        set(value) {
+            baseUrlField.text = value
+        }
+
+    var username: String
+        get() = usernameField.text.trim()
+        set(value) {
+            usernameField.text = value
+        }
+
+    var apiToken: String
+        get() = String(apiTokenField.password)
+        set(value) {
+            apiTokenField.text = value
+        }
+
+    var jqlQuery: String
+        get() = jqlField.text.trim()
+        set(value) {
+            jqlField.text = value
+        }
+
+    var maxResults: Int
+        get() = (maxResultsSpinner.value as? Int) ?: 10
+        set(value) {
+            maxResultsSpinner.value = value
+        }
 }

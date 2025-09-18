@@ -1,22 +1,19 @@
 package com.example.jira.settings
 
-import com.intellij.credentialStore.CredentialAttributes
-import com.intellij.credentialStore.CredentialAttributesKt
-import com.intellij.credentialStore.Credentials
-import com.intellij.credentialStore.PasswordSafe
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 
-@Service(Service.Level.APP)
-@State(name = "JiraSettingsState", storages = [Storage("jiraCommitAssistant.xml")])
+@State(name = "JiraCommitAssistantSettings", storages = [Storage("jiraCommitAssistant.xml")])
 class JiraSettingsState : PersistentStateComponent<JiraSettingsState.State> {
+
     data class State(
         var baseUrl: String = "",
-        var email: String = "",
-        var defaultJql: String = "project = MYPROJECT ORDER BY updated DESC"
+        var username: String = "",
+        var apiToken: String = "",
+        var jqlQuery: String = "",
+        var maxResults: Int = 10
     )
 
     private var state = State()
@@ -33,43 +30,35 @@ class JiraSettingsState : PersistentStateComponent<JiraSettingsState.State> {
             state = state.copy(baseUrl = value)
         }
 
-    var email: String
-        get() = state.email
+    var username: String
+        get() = state.username
         set(value) {
-            state = state.copy(email = value)
+            state = state.copy(username = value)
         }
 
     var apiToken: String
-        get() {
-            val password = PasswordSafe.instance.getPassword(credentialAttributes())
-            return password ?: ""
-        }
+        get() = state.apiToken
         set(value) {
-            if (value.isBlank()) {
-                PasswordSafe.instance.set(credentialAttributes(), null)
-            } else {
-                PasswordSafe.instance.set(credentialAttributes(), Credentials(null, value))
-            }
+            state = state.copy(apiToken = value)
         }
 
-    var defaultJql: String
-        get() = state.defaultJql
+    var jqlQuery: String
+        get() = state.jqlQuery
         set(value) {
-            state = state.copy(defaultJql = value)
+            state = state.copy(jqlQuery = value)
         }
 
-    private fun credentialAttributes(): CredentialAttributes {
-        val serviceName = CredentialAttributesKt.generateServiceName(
-            "JiraCommitAssistant",
-            "ApiToken"
-        )
-        return CredentialAttributes(serviceName)
-    }
+    var maxResults: Int
+        get() = state.maxResults
+        set(value) {
+            state = state.copy(maxResults = value.coerceIn(1, 50))
+        }
 
-    fun isConfigured(): Boolean = baseUrl.isNotBlank() && apiToken.isNotBlank()
+    fun isConfigured(): Boolean =
+        baseUrl.isNotBlank() && username.isNotBlank() && apiToken.isNotBlank() && jqlQuery.isNotBlank()
 
     companion object {
-        fun getInstance(): JiraSettingsState = ApplicationManager.getApplication()
-            .getService(JiraSettingsState::class.java)
+        fun getInstance(): JiraSettingsState =
+            ApplicationManager.getApplication().getService(JiraSettingsState::class.java)
     }
 }

@@ -4,45 +4,50 @@ import com.intellij.openapi.options.Configurable
 import javax.swing.JComponent
 
 class JiraSettingsConfigurable : Configurable {
-    private val settingsState = JiraSettingsState.getInstance()
-    private var component: JiraSettingsComponent? = null
+
+    private var settingsComponent: JiraSettingsComponent? = null
 
     override fun getDisplayName(): String = "Jira Commit Assistant"
 
+    override fun getPreferredFocusedComponent(): JComponent? = settingsComponent?.getPreferredFocusedComponent()
+
     override fun createComponent(): JComponent {
-        val comp = JiraSettingsComponent()
-        component = comp
-        reset()
-        return comp.panel
+        val component = JiraSettingsComponent()
+        settingsComponent = component
+        return component.panel
     }
 
     override fun isModified(): Boolean {
-        val comp = component ?: return false
-        return comp.baseUrlField.text != settingsState.baseUrl ||
-            comp.emailField.text != settingsState.email ||
-            String(comp.apiTokenField.password) != settingsState.apiToken ||
-            comp.defaultJqlArea.text != settingsState.defaultJql
+        val settings = JiraSettingsState.getInstance()
+        val component = settingsComponent ?: return false
+        return component.baseUrl != settings.baseUrl ||
+            component.username != settings.username ||
+            component.apiToken != settings.apiToken ||
+            component.jqlQuery != settings.jqlQuery ||
+            component.maxResults != settings.maxResults
     }
 
     override fun apply() {
-        val comp = component ?: return
-        settingsState.baseUrl = comp.baseUrlField.text.trim()
-        settingsState.email = comp.emailField.text.trim()
-        settingsState.apiToken = String(comp.apiTokenField.password).trim()
-        settingsState.defaultJql = comp.defaultJqlArea.text.trim()
+        val settings = JiraSettingsState.getInstance()
+        val component = settingsComponent ?: return
+        settings.baseUrl = component.baseUrl
+        settings.username = component.username
+        settings.apiToken = component.apiToken
+        settings.jqlQuery = component.jqlQuery
+        settings.maxResults = component.maxResults
     }
 
     override fun reset() {
-        val comp = component ?: return
-        comp.baseUrlField.text = settingsState.baseUrl
-        comp.emailField.text = settingsState.email
-        comp.apiTokenField.text = settingsState.apiToken
-        comp.defaultJqlArea.text = settingsState.defaultJql
+        val settings = JiraSettingsState.getInstance()
+        val component = settingsComponent ?: return
+        component.baseUrl = settings.baseUrl
+        component.username = settings.username
+        component.apiToken = settings.apiToken
+        component.jqlQuery = settings.jqlQuery
+        component.maxResults = settings.maxResults
     }
 
     override fun disposeUIResources() {
-        component = null
+        settingsComponent = null
     }
-
-    override fun getPreferredFocusedComponent(): JComponent? = component?.getPreferredFocusedComponent()
 }
