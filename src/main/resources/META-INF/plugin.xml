@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>com.example.jira.commit-assistant</id>
+    <name>Jira Commit Assistant</name>
+    <vendor email="support@example.com">Jira Commit Assistant</vendor>
+    <description><![CDATA[
+        <p>Automatically prefixes commit messages with a Jira issue key selected from a searchable list.</p>
+        <ul>
+            <li>Fetches Jira issues using your configured JQL.</li>
+            <li>Shows a selector when committing to prepend the issue key.</li>
+            <li>Provides quick search to find other tickets.</li>
+        </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable instance="com.example.jira.settings.JiraSettingsConfigurable" id="jiraCommitAssistant" displayName="Jira Commit Assistant"/>
+        <checkinHandlerFactory implementation="com.example.jira.commit.JiraCommitHandlerFactory"/>
+    </extensions>
+</idea-plugin>
