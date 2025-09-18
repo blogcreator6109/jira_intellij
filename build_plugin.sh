@@ -32,7 +32,6 @@ ensure_wrapper_jar() {
     echo "Either curl or wget is required to download the Gradle wrapper." >&2
     exit 1
   fi
-
   if ! command -v unzip >/dev/null 2>&1; then
     echo "The 'unzip' utility is required to extract gradle-wrapper.jar. Please install unzip and retry." >&2
     exit 1
