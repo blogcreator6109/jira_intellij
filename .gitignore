@@ -1,0 +1,7 @@
+.gradle/
+build/
+.gradle
+*.iml
+.idea/
+# Generated Gradle wrapper jar is downloaded on demand
+gradle/wrapper/gradle-wrapper.jar
