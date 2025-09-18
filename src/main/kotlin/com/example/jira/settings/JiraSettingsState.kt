@@ -4,6 +4,11 @@ import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.CredentialAttributesKt
 import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.PasswordSafe
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
 
 @Service(Service.Level.APP)
 @State(name = "JiraSettingsState", storages = [Storage("jiraCommitAssistant.xml")])
@@ -52,11 +57,19 @@ class JiraSettingsState : PersistentStateComponent<JiraSettingsState.State> {
         set(value) {
             state = state.copy(defaultJql = value)
         }
+
     private fun credentialAttributes(): CredentialAttributes {
         val serviceName = CredentialAttributesKt.generateServiceName(
             "JiraCommitAssistant",
             "ApiToken"
         )
         return CredentialAttributes(serviceName)
+    }
+
+    fun isConfigured(): Boolean = baseUrl.isNotBlank() && apiToken.isNotBlank()
+
+    companion object {
+        fun getInstance(): JiraSettingsState = ApplicationManager.getApplication()
+            .getService(JiraSettingsState::class.java)
     }
 }
