@@ -1,10 +1,9 @@
 package com.example.jira.settings
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
+import com.intellij.credentialStore.CredentialAttributes
+import com.intellij.credentialStore.CredentialAttributesKt
+import com.intellij.credentialStore.Credentials
+import com.intellij.credentialStore.PasswordSafe
 
 @Service(Service.Level.APP)
 @State(name = "JiraSettingsState", storages = [Storage("jiraCommitAssistant.xml")])
@@ -12,7 +11,6 @@ class JiraSettingsState : PersistentStateComponent<JiraSettingsState.State> {
     data class State(
         var baseUrl: String = "",
         var email: String = "",
-        var apiToken: String = "",
         var defaultJql: String = "project = MYPROJECT ORDER BY updated DESC"
     )
 
@@ -37,9 +35,16 @@ class JiraSettingsState : PersistentStateComponent<JiraSettingsState.State> {
         }
 
     var apiToken: String
-        get() = state.apiToken
+        get() {
+            val password = PasswordSafe.instance.getPassword(credentialAttributes())
+            return password ?: ""
+        }
         set(value) {
-            state = state.copy(apiToken = value)
+            if (value.isBlank()) {
+                PasswordSafe.instance.set(credentialAttributes(), null)
+            } else {
+                PasswordSafe.instance.set(credentialAttributes(), Credentials(null, value))
+            }
         }
 
     var defaultJql: String
@@ -47,11 +52,11 @@ class JiraSettingsState : PersistentStateComponent<JiraSettingsState.State> {
         set(value) {
             state = state.copy(defaultJql = value)
         }
-
-    fun isConfigured(): Boolean = baseUrl.isNotBlank() && apiToken.isNotBlank()
-
-    companion object {
-        fun getInstance(): JiraSettingsState = ApplicationManager.getApplication()
-            .getService(JiraSettingsState::class.java)
+    private fun credentialAttributes(): CredentialAttributes {
+        val serviceName = CredentialAttributesKt.generateServiceName(
+            "JiraCommitAssistant",
+            "ApiToken"
+        )
+        return CredentialAttributes(serviceName)
     }
 }
